@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,endsWith,escape,extend,filter,find,findLast,first,flatten,flattenDeep,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,trim,trunc,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findLast,first,flatten,flattenDeep,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,throttle,trim,trunc,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5030,6 +5030,61 @@
     };
   }
 
+  /**
+   * Creates a throttled function that only invokes `func` at most once per
+   * every `wait` milliseconds. The throttled function comes with a `cancel`
+   * method to cancel delayed invocations. Provide an options object to indicate
+   * that `func` should be invoked on the leading and/or trailing edge of the
+   * `wait` timeout. Subsequent calls to the throttled function return the
+   * result of the last `func` call.
+   *
+   * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
+   * on the trailing edge of the timeout only if the the throttled function is
+   * invoked more than once during the `wait` timeout.
+   *
+   * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
+   * for details over the differences between `_.throttle` and `_.debounce`.
+   *
+   * @static
+   * @memberOf _
+   * @category Function
+   * @param {Function} func The function to throttle.
+   * @param {number} [wait=0] The number of milliseconds to throttle invocations to.
+   * @param {Object} [options] The options object.
+   * @param {boolean} [options.leading=true] Specify invoking on the leading
+   *  edge of the timeout.
+   * @param {boolean} [options.trailing=true] Specify invoking on the trailing
+   *  edge of the timeout.
+   * @returns {Function} Returns the new throttled function.
+   * @example
+   *
+   * // avoid excessively updating the position while scrolling
+   * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
+   *
+   * // invoke `renewToken` when the click event is fired, but not more than once every 5 minutes
+   * jQuery('.interactive').on('click', _.throttle(renewToken, 300000, {
+   *   'trailing': false
+   * }));
+   *
+   * // cancel a trailing throttled call
+   * jQuery(window).on('popstate', throttled.cancel);
+   */
+  function throttle(func, wait, options) {
+    var leading = true,
+        trailing = true;
+
+    if (typeof func != 'function') {
+      throw new TypeError(FUNC_ERROR_TEXT);
+    }
+    if (options === false) {
+      leading = false;
+    } else if (isObject(options)) {
+      leading = 'leading' in options ? !!options.leading : leading;
+      trailing = 'trailing' in options ? !!options.trailing : trailing;
+    }
+    return debounce(func, wait, { 'leading': leading, 'maxWait': +wait, 'trailing': trailing });
+  }
+
   /*------------------------------------------------------------------------*/
 
   /**
@@ -6027,40 +6082,6 @@
   }
 
   /**
-   * Checks if `string` ends with the given target string.
-   *
-   * @static
-   * @memberOf _
-   * @category String
-   * @param {string} [string=''] The string to search.
-   * @param {string} [target] The string to search for.
-   * @param {number} [position=string.length] The position to search from.
-   * @returns {boolean} Returns `true` if `string` ends with `target`, else `false`.
-   * @example
-   *
-   * _.endsWith('abc', 'c');
-   * // => true
-   *
-   * _.endsWith('abc', 'b');
-   * // => false
-   *
-   * _.endsWith('abc', 'b', 2);
-   * // => true
-   */
-  function endsWith(string, target, position) {
-    string = baseToString(string);
-    target = (target + '');
-
-    var length = string.length;
-    position = position === undefined
-      ? length
-      : nativeMin(position < 0 ? 0 : (+position || 0), length);
-
-    position -= target.length;
-    return position >= 0 && string.indexOf(target, position) == position;
-  }
-
-  /**
    * Converts the characters "&", "<", ">", '"', "'", and "\`", in `string` to
    * their corresponding HTML entities.
    *
@@ -6736,6 +6757,7 @@
   lodash.slice = slice;
   lodash.sortBy = sortBy;
   lodash.tap = tap;
+  lodash.throttle = throttle;
   lodash.thru = thru;
   lodash.toPlainObject = toPlainObject;
   lodash.uniq = uniq;
@@ -6762,7 +6784,6 @@
   lodash.clone = clone;
   lodash.cloneDeep = cloneDeep;
   lodash.deburr = deburr;
-  lodash.endsWith = endsWith;
   lodash.escape = escape;
   lodash.find = find;
   lodash.findLast = findLast;

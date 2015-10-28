@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findLast,first,flatten,flattenDeep,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,throttle,trim,trunc,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findLast,first,flatten,flattenDeep,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,throttle,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -73,7 +73,9 @@
       uint32Tag = '[object Uint32Array]';
 
   /** Used to match HTML entities and HTML characters. */
-  var reUnescapedHtml = /[&<>"'`]/g,
+  var reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g,
+      reUnescapedHtml = /[&<>"'`]/g,
+      reHasEscapedHtml = RegExp(reEscapedHtml.source),
       reHasUnescapedHtml = RegExp(reUnescapedHtml.source);
 
   /** Used to match property names within property paths. */
@@ -172,6 +174,16 @@
     '"': '&quot;',
     "'": '&#39;',
     '`': '&#96;'
+  };
+
+  /** Used to map HTML entities to characters. */
+  var htmlUnescapes = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&#96;': '`'
   };
 
   /** Used to determine if values are of the language type `Object`. */
@@ -514,6 +526,17 @@
 
     while (index-- && isSpace(string.charCodeAt(index))) {}
     return index;
+  }
+
+  /**
+   * Used by `_.unescape` to convert HTML entities to characters.
+   *
+   * @private
+   * @param {string} chr The matched character to unescape.
+   * @returns {string} Returns the unescaped character.
+   */
+  function unescapeHtmlChar(chr) {
+    return htmlUnescapes[chr];
   }
 
   /*--------------------------------------------------------------------------*/
@@ -6358,6 +6381,31 @@
   }
 
   /**
+   * The inverse of `_.escape`; this method converts the HTML entities
+   * `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#39;`, and `&#96;` in `string` to their
+   * corresponding characters.
+   *
+   * **Note:** No other HTML entities are unescaped. To unescape additional HTML
+   * entities use a third-party library like [_he_](https://mths.be/he).
+   *
+   * @static
+   * @memberOf _
+   * @category String
+   * @param {string} [string=''] The string to unescape.
+   * @returns {string} Returns the unescaped string.
+   * @example
+   *
+   * _.unescape('fred, barney, &amp; pebbles');
+   * // => 'fred, barney, & pebbles'
+   */
+  function unescape(string) {
+    string = baseToString(string);
+    return (string && reHasEscapedHtml.test(string))
+      ? string.replace(reEscapedHtml, unescapeHtmlChar)
+      : string;
+  }
+
+  /**
    * Splits `string` into an array of its words.
    *
    * @static
@@ -6817,6 +6865,7 @@
   lodash.startCase = startCase;
   lodash.trim = trim;
   lodash.trunc = trunc;
+  lodash.unescape = unescape;
   lodash.words = words;
 
   // Add aliases.

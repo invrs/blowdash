@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,throttle,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findLast,first,flatten,flattenDeep,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,kebabCase,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,throttle,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1506,6 +1506,17 @@
   var baseEach = createBaseEach(baseForOwn);
 
   /**
+   * The base implementation of `_.forEachRight` without support for callback
+   * shorthands and `this` binding.
+   *
+   * @private
+   * @param {Array|Object|string} collection The collection to iterate over.
+   * @param {Function} iteratee The function invoked per iteration.
+   * @returns {Array|Object|string} Returns `collection`.
+   */
+  var baseEachRight = createBaseEach(baseForOwnRight, true);
+
+  /**
    * Gets the extremum value of `collection` invoking `iteratee` for each value
    * in `collection` to generate the criterion by which the value is ranked.
    * The `iteratee` is invoked with three arguments: (value, index|key, collection).
@@ -1623,6 +1634,18 @@
   var baseFor = createBaseFor();
 
   /**
+   * This function is like `baseFor` except that it iterates over properties
+   * in the opposite order.
+   *
+   * @private
+   * @param {Object} object The object to iterate over.
+   * @param {Function} iteratee The function invoked per iteration.
+   * @param {Function} keysFunc The function to get the keys of `object`.
+   * @returns {Object} Returns `object`.
+   */
+  var baseForRight = createBaseFor(true);
+
+  /**
    * The base implementation of `_.forIn` without support for callback
    * shorthands and `this` binding.
    *
@@ -1646,6 +1669,19 @@
    */
   function baseForOwn(object, iteratee) {
     return baseFor(object, iteratee, keys);
+  }
+
+  /**
+   * The base implementation of `_.forOwnRight` without support for callback
+   * shorthands and `this` binding.
+   *
+   * @private
+   * @param {Object} object The object to iterate over.
+   * @param {Function} iteratee The function invoked per iteration.
+   * @returns {Object} Returns `object`.
+   */
+  function baseForOwnRight(object, iteratee) {
+    return baseForRight(object, iteratee, keys);
   }
 
   /**
@@ -3686,6 +3722,24 @@
   }
 
   /**
+   * Recursively flattens a nested array.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to recursively flatten.
+   * @returns {Array} Returns the new flattened array.
+   * @example
+   *
+   * _.flattenDeep([1, [2, 3, [4]]]);
+   * // => [1, 2, 3, 4]
+   */
+  function flattenDeep(array) {
+    var length = array ? array.length : 0;
+    return length ? baseFlatten(array, true) : [];
+  }
+
+  /**
    * Gets the index at which the first occurrence of `value` is found in `array`
    * using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons. If `fromIndex` is negative, it's used as the offset
@@ -3840,6 +3894,32 @@
     }
     basePullAt(array, indexes);
     return result;
+  }
+
+  /**
+   * Creates a slice of `array` from `start` up to, but not including, `end`.
+   *
+   * **Note:** This method is used instead of `Array#slice` to support node
+   * lists in IE < 9 and to ensure dense arrays are returned.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to slice.
+   * @param {number} [start=0] The start position.
+   * @param {number} [end=array.length] The end position.
+   * @returns {Array} Returns the slice of `array`.
+   */
+  function slice(array, start, end) {
+    var length = array ? array.length : 0;
+    if (!length) {
+      return [];
+    }
+    if (end && typeof end != 'number' && isIterateeCall(array, start, end)) {
+      start = 0;
+      end = length;
+    }
+    return baseSlice(array, start, end);
   }
 
   /**
@@ -4364,6 +4444,27 @@
    * // => 'barney'
    */
   var find = createFind(baseEach);
+
+  /**
+   * This method is like `_.find` except that it iterates over elements of
+   * `collection` from right to left.
+   *
+   * @static
+   * @memberOf _
+   * @category Collection
+   * @param {Array|Object|string} collection The collection to search.
+   * @param {Function|Object|string} [predicate=_.identity] The function invoked
+   *  per iteration.
+   * @param {*} [thisArg] The `this` binding of `predicate`.
+   * @returns {*} Returns the matched element, else `undefined`.
+   * @example
+   *
+   * _.findLast([1, 2, 3, 4], function(n) {
+   *   return n % 2 == 1;
+   * });
+   * // => 3
+   */
+  var findLast = createFind(baseEachRight, true);
 
   /**
    * Iterates over elements of `collection` invoking `iteratee` for each element.
@@ -5872,57 +5973,6 @@
   });
 
   /**
-   * An alternative to `_.reduce`; this method transforms `object` to a new
-   * `accumulator` object which is the result of running each of its own enumerable
-   * properties through `iteratee`, with each invocation potentially mutating
-   * the `accumulator` object. The `iteratee` is bound to `thisArg` and invoked
-   * with four arguments: (accumulator, value, key, object). Iteratee functions
-   * may exit iteration early by explicitly returning `false`.
-   *
-   * @static
-   * @memberOf _
-   * @category Object
-   * @param {Array|Object} object The object to iterate over.
-   * @param {Function} [iteratee=_.identity] The function invoked per iteration.
-   * @param {*} [accumulator] The custom accumulator value.
-   * @param {*} [thisArg] The `this` binding of `iteratee`.
-   * @returns {*} Returns the accumulated value.
-   * @example
-   *
-   * _.transform([2, 3, 4], function(result, n) {
-   *   result.push(n *= n);
-   *   return n % 2 == 0;
-   * });
-   * // => [4, 9]
-   *
-   * _.transform({ 'a': 1, 'b': 2 }, function(result, n, key) {
-   *   result[key] = n * 3;
-   * });
-   * // => { 'a': 3, 'b': 6 }
-   */
-  function transform(object, iteratee, accumulator, thisArg) {
-    var isArr = isArray(object) || isTypedArray(object);
-    iteratee = getCallback(iteratee, thisArg, 4);
-
-    if (accumulator == null) {
-      if (isArr || isObject(object)) {
-        var Ctor = object.constructor;
-        if (isArr) {
-          accumulator = isArray(object) ? new Ctor : [];
-        } else {
-          accumulator = baseCreate(isFunction(Ctor) ? Ctor.prototype : undefined);
-        }
-      } else {
-        accumulator = {};
-      }
-    }
-    (isArr ? arrayEach : baseForOwn)(object, function(value, index, object) {
-      return iteratee(accumulator, value, index, object);
-    });
-    return accumulator;
-  }
-
-  /**
    * Creates an array of the own enumerable property values of `object`.
    *
    * **Note:** Non-object values are coerced to objects.
@@ -6733,6 +6783,7 @@
   lodash.drop = drop;
   lodash.filter = filter;
   lodash.flatten = flatten;
+  lodash.flattenDeep = flattenDeep;
   lodash.forEach = forEach;
   lodash.indexBy = indexBy;
   lodash.keys = keys;
@@ -6751,12 +6802,12 @@
   lodash.reject = reject;
   lodash.remove = remove;
   lodash.restParam = restParam;
+  lodash.slice = slice;
   lodash.sortBy = sortBy;
   lodash.tap = tap;
   lodash.throttle = throttle;
   lodash.thru = thru;
   lodash.toPlainObject = toPlainObject;
-  lodash.transform = transform;
   lodash.uniq = uniq;
   lodash.values = values;
   lodash.without = without;
@@ -6783,6 +6834,7 @@
   lodash.deburr = deburr;
   lodash.escape = escape;
   lodash.find = find;
+  lodash.findLast = findLast;
   lodash.first = first;
   lodash.get = get;
   lodash.gt = gt;

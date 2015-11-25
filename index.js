@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isFunction,isObject,isString,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,throttle,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1446,6 +1446,23 @@
       return result || {};
     };
   }());
+
+  /**
+   * The base implementation of `_.delay` and `_.defer` which accepts an index
+   * of where to slice the arguments to provide to `func`.
+   *
+   * @private
+   * @param {Function} func The function to delay.
+   * @param {number} wait The number of milliseconds to delay invocation.
+   * @param {Object} args The arguments provide to `func`.
+   * @returns {number} Returns the timer id.
+   */
+  function baseDelay(func, wait, args) {
+    if (typeof func != 'function') {
+      throw new TypeError(FUNC_ERROR_TEXT);
+    }
+    return setTimeout(function() { func.apply(undefined, args); }, wait);
+  }
 
   /**
    * The base implementation of `_.difference` which accepts a single array
@@ -3658,34 +3675,6 @@
   }
 
   /**
-   * Flattens a nested array. If `isDeep` is `true` the array is recursively
-   * flattened, otherwise it's only flattened a single level.
-   *
-   * @static
-   * @memberOf _
-   * @category Array
-   * @param {Array} array The array to flatten.
-   * @param {boolean} [isDeep] Specify a deep flatten.
-   * @param- {Object} [guard] Enables use as a callback for functions like `_.map`.
-   * @returns {Array} Returns the new flattened array.
-   * @example
-   *
-   * _.flatten([1, [2, 3, [4]]]);
-   * // => [1, 2, 3, [4]]
-   *
-   * // using `isDeep`
-   * _.flatten([1, [2, 3, [4]]], true);
-   * // => [1, 2, 3, 4]
-   */
-  function flatten(array, isDeep, guard) {
-    var length = array ? array.length : 0;
-    if (guard && isIterateeCall(array, isDeep, guard)) {
-      isDeep = false;
-    }
-    return length ? baseFlatten(array, isDeep) : [];
-  }
-
-  /**
    * Gets the index at which the first occurrence of `value` is found in `array`
    * using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons. If `fromIndex` is negative, it's used as the offset
@@ -4902,6 +4891,28 @@
   }
 
   /**
+   * Invokes `func` after `wait` milliseconds. Any additional arguments are
+   * provided to `func` when it's invoked.
+   *
+   * @static
+   * @memberOf _
+   * @category Function
+   * @param {Function} func The function to delay.
+   * @param {number} wait The number of milliseconds to delay invocation.
+   * @param {...*} [args] The arguments to invoke the function with.
+   * @returns {number} Returns the timer id.
+   * @example
+   *
+   * _.delay(function(text) {
+   *   console.log(text);
+   * }, 1000, 'later');
+   * // => logs 'later' after one second
+   */
+  var delay = restParam(function(func, wait, args) {
+    return baseDelay(func, wait, args);
+  });
+
+  /**
    * Creates a function that invokes `func` with the `this` binding of the
    * created function and arguments from `start` and beyond provided as an array.
    *
@@ -4950,6 +4961,61 @@
       otherArgs[start] = rest;
       return func.apply(this, otherArgs);
     };
+  }
+
+  /**
+   * Creates a throttled function that only invokes `func` at most once per
+   * every `wait` milliseconds. The throttled function comes with a `cancel`
+   * method to cancel delayed invocations. Provide an options object to indicate
+   * that `func` should be invoked on the leading and/or trailing edge of the
+   * `wait` timeout. Subsequent calls to the throttled function return the
+   * result of the last `func` call.
+   *
+   * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
+   * on the trailing edge of the timeout only if the the throttled function is
+   * invoked more than once during the `wait` timeout.
+   *
+   * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
+   * for details over the differences between `_.throttle` and `_.debounce`.
+   *
+   * @static
+   * @memberOf _
+   * @category Function
+   * @param {Function} func The function to throttle.
+   * @param {number} [wait=0] The number of milliseconds to throttle invocations to.
+   * @param {Object} [options] The options object.
+   * @param {boolean} [options.leading=true] Specify invoking on the leading
+   *  edge of the timeout.
+   * @param {boolean} [options.trailing=true] Specify invoking on the trailing
+   *  edge of the timeout.
+   * @returns {Function} Returns the new throttled function.
+   * @example
+   *
+   * // avoid excessively updating the position while scrolling
+   * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
+   *
+   * // invoke `renewToken` when the click event is fired, but not more than once every 5 minutes
+   * jQuery('.interactive').on('click', _.throttle(renewToken, 300000, {
+   *   'trailing': false
+   * }));
+   *
+   * // cancel a trailing throttled call
+   * jQuery(window).on('popstate', throttled.cancel);
+   */
+  function throttle(func, wait, options) {
+    var leading = true,
+        trailing = true;
+
+    if (typeof func != 'function') {
+      throw new TypeError(FUNC_ERROR_TEXT);
+    }
+    if (options === false) {
+      leading = false;
+    } else if (isObject(options)) {
+      leading = 'leading' in options ? !!options.leading : leading;
+      trailing = 'trailing' in options ? !!options.trailing : trailing;
+    }
+    return debounce(func, wait, { 'leading': leading, 'maxWait': +wait, 'trailing': trailing });
   }
 
   /*------------------------------------------------------------------------*/
@@ -5171,6 +5237,56 @@
       return !value.length;
     }
     return !keys(value).length;
+  }
+
+  /**
+   * Performs a deep comparison between two values to determine if they are
+   * equivalent. If `customizer` is provided it's invoked to compare values.
+   * If `customizer` returns `undefined` comparisons are handled by the method
+   * instead. The `customizer` is bound to `thisArg` and invoked with up to
+   * three arguments: (value, other [, index|key]).
+   *
+   * **Note:** This method supports comparing arrays, booleans, `Date` objects,
+   * numbers, `Object` objects, regexes, and strings. Objects are compared by
+   * their own, not inherited, enumerable properties. Functions and DOM nodes
+   * are **not** supported. Provide a customizer function to extend support
+   * for comparing other values.
+   *
+   * @static
+   * @memberOf _
+   * @alias eq
+   * @category Lang
+   * @param {*} value The value to compare.
+   * @param {*} other The other value to compare.
+   * @param {Function} [customizer] The function to customize value comparisons.
+   * @param {*} [thisArg] The `this` binding of `customizer`.
+   * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+   * @example
+   *
+   * var object = { 'user': 'fred' };
+   * var other = { 'user': 'fred' };
+   *
+   * object == other;
+   * // => false
+   *
+   * _.isEqual(object, other);
+   * // => true
+   *
+   * // using a customizer callback
+   * var array = ['hello', 'goodbye'];
+   * var other = ['hi', 'goodbye'];
+   *
+   * _.isEqual(array, other, function(value, other) {
+   *   if (_.every([value, other], RegExp.prototype.test, /^h(?:i|ello)$/)) {
+   *     return true;
+   *   }
+   * });
+   * // => true
+   */
+  function isEqual(value, other, customizer, thisArg) {
+    customizer = typeof customizer == 'function' ? bindCallback(customizer, thisArg, 3) : undefined;
+    var result = customizer ? customizer(value, other) : undefined;
+    return  result === undefined ? baseIsEqual(value, other, customizer) : !!result;
   }
 
   /**
@@ -6652,9 +6768,9 @@
   lodash.chunk = chunk;
   lodash.debounce = debounce;
   lodash.defaults = defaults;
+  lodash.delay = delay;
   lodash.drop = drop;
   lodash.filter = filter;
-  lodash.flatten = flatten;
   lodash.forEach = forEach;
   lodash.indexBy = indexBy;
   lodash.keys = keys;
@@ -6675,6 +6791,7 @@
   lodash.restParam = restParam;
   lodash.sortBy = sortBy;
   lodash.tap = tap;
+  lodash.throttle = throttle;
   lodash.thru = thru;
   lodash.toPlainObject = toPlainObject;
   lodash.transform = transform;
@@ -6712,6 +6829,7 @@
   lodash.isArguments = isArguments;
   lodash.isArray = isArray;
   lodash.isEmpty = isEmpty;
+  lodash.isEqual = isEqual;
   lodash.isFunction = isFunction;
   lodash.isNative = isNative;
   lodash.isObject = isObject;
@@ -6737,6 +6855,7 @@
   lodash.words = words;
 
   // Add aliases.
+  lodash.eq = isEqual;
   lodash.detect = find;
   lodash.foldl = reduce;
   lodash.head = first;

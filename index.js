@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,throttle,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,throttle,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3675,6 +3675,34 @@
   }
 
   /**
+   * Flattens a nested array. If `isDeep` is `true` the array is recursively
+   * flattened, otherwise it's only flattened a single level.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to flatten.
+   * @param {boolean} [isDeep] Specify a deep flatten.
+   * @param- {Object} [guard] Enables use as a callback for functions like `_.map`.
+   * @returns {Array} Returns the new flattened array.
+   * @example
+   *
+   * _.flatten([1, [2, 3, [4]]]);
+   * // => [1, 2, 3, [4]]
+   *
+   * // using `isDeep`
+   * _.flatten([1, [2, 3, [4]]], true);
+   * // => [1, 2, 3, 4]
+   */
+  function flatten(array, isDeep, guard) {
+    var length = array ? array.length : 0;
+    if (guard && isIterateeCall(array, isDeep, guard)) {
+      isDeep = false;
+    }
+    return length ? baseFlatten(array, isDeep) : [];
+  }
+
+  /**
    * Gets the index at which the first occurrence of `value` is found in `array`
    * using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons. If `fromIndex` is negative, it's used as the offset
@@ -6771,6 +6799,7 @@
   lodash.delay = delay;
   lodash.drop = drop;
   lodash.filter = filter;
+  lodash.flatten = flatten;
   lodash.forEach = forEach;
   lodash.indexBy = indexBy;
   lodash.keys = keys;

@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,slice,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3860,32 +3860,6 @@
   }
 
   /**
-   * Creates a slice of `array` from `start` up to, but not including, `end`.
-   *
-   * **Note:** This method is used instead of `Array#slice` to support node
-   * lists in IE < 9 and to ensure dense arrays are returned.
-   *
-   * @static
-   * @memberOf _
-   * @category Array
-   * @param {Array} array The array to slice.
-   * @param {number} [start=0] The start position.
-   * @param {number} [end=array.length] The end position.
-   * @returns {Array} Returns the slice of `array`.
-   */
-  function slice(array, start, end) {
-    var length = array ? array.length : 0;
-    if (!length) {
-      return [];
-    }
-    if (end && typeof end != 'number' && isIterateeCall(array, start, end)) {
-      start = 0;
-      end = length;
-    }
-    return baseSlice(array, start, end);
-  }
-
-  /**
    * Creates a duplicate-free version of an array, using
    * [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons, in which only the first occurence of each element
@@ -6812,7 +6786,6 @@
   lodash.reject = reject;
   lodash.remove = remove;
   lodash.restParam = restParam;
-  lodash.slice = slice;
   lodash.sortBy = sortBy;
   lodash.tap = tap;
   lodash.thru = thru;

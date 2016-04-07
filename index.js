@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,map,mapValues,max,merge,min,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -586,8 +586,7 @@
       nativeRandom = Math.random;
 
   /** Used as references for `-Infinity` and `Infinity`. */
-  var NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY,
-      POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
+  var POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
 
   /** Used as references for the maximum length and index of an array. */
   var MAX_ARRAY_LENGTH = 4294967295,
@@ -1085,35 +1084,6 @@
   }
 
   /**
-   * A specialized version of `baseExtremum` for arrays which invokes `iteratee`
-   * with one argument: (value).
-   *
-   * @private
-   * @param {Array} array The array to iterate over.
-   * @param {Function} iteratee The function invoked per iteration.
-   * @param {Function} comparator The function used to compare values.
-   * @param {*} exValue The initial extremum value.
-   * @returns {*} Returns the extremum value.
-   */
-  function arrayExtremum(array, iteratee, comparator, exValue) {
-    var index = -1,
-        length = array.length,
-        computed = exValue,
-        result = computed;
-
-    while (++index < length) {
-      var value = array[index],
-          current = +iteratee(value);
-
-      if (comparator(current, computed)) {
-        computed = current;
-        result = value;
-      }
-    }
-    return result;
-  }
-
-  /**
    * A specialized version of `_.filter` for arrays without support for callback
    * shorthands and `this` binding.
    *
@@ -1521,32 +1491,6 @@
    * @returns {Array|Object|string} Returns `collection`.
    */
   var baseEach = createBaseEach(baseForOwn);
-
-  /**
-   * Gets the extremum value of `collection` invoking `iteratee` for each value
-   * in `collection` to generate the criterion by which the value is ranked.
-   * The `iteratee` is invoked with three arguments: (value, index|key, collection).
-   *
-   * @private
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function} iteratee The function invoked per iteration.
-   * @param {Function} comparator The function used to compare values.
-   * @param {*} exValue The initial extremum value.
-   * @returns {*} Returns the extremum value.
-   */
-  function baseExtremum(collection, iteratee, comparator, exValue) {
-    var computed = exValue,
-        result = computed;
-
-    baseEach(collection, function(value, index, collection) {
-      var current = +iteratee(value, index, collection);
-      if (comparator(current, computed) || (current === exValue && current === result)) {
-        computed = current;
-        result = value;
-      }
-    });
-    return result;
-  }
 
   /**
    * The base implementation of `_.filter` without support for callback
@@ -2686,31 +2630,6 @@
       args.push(customizer);
       return assigner.apply(undefined, args);
     });
-  }
-
-  /**
-   * Creates a `_.max` or `_.min` function.
-   *
-   * @private
-   * @param {Function} comparator The function used to compare values.
-   * @param {*} exValue The initial extremum value.
-   * @returns {Function} Returns the new extremum function.
-   */
-  function createExtremum(comparator, exValue) {
-    return function(collection, iteratee, thisArg) {
-      if (thisArg && isIterateeCall(collection, iteratee, thisArg)) {
-        iteratee = undefined;
-      }
-      iteratee = getCallback(iteratee, thisArg, 3);
-      if (iteratee.length == 1) {
-        collection = isArray(collection) ? collection : toIterable(collection);
-        var result = arrayExtremum(collection, iteratee, comparator, exValue);
-        if (!(collection.length && result === exValue)) {
-          return result;
-        }
-      }
-      return baseExtremum(collection, iteratee, comparator, exValue);
-    };
   }
 
   /**
@@ -4637,6 +4556,65 @@
   }
 
   /**
+   * Gets a random element or `n` random elements from a collection.
+   *
+   * @static
+   * @memberOf _
+   * @category Collection
+   * @param {Array|Object|string} collection The collection to sample.
+   * @param {number} [n] The number of elements to sample.
+   * @param- {Object} [guard] Enables use as a callback for functions like `_.map`.
+   * @returns {*} Returns the random sample(s).
+   * @example
+   *
+   * _.sample([1, 2, 3, 4]);
+   * // => 2
+   *
+   * _.sample([1, 2, 3, 4], 2);
+   * // => [3, 1]
+   */
+  function sample(collection, n, guard) {
+    if (guard ? isIterateeCall(collection, n, guard) : n == null) {
+      collection = toIterable(collection);
+      var length = collection.length;
+      return length > 0 ? collection[baseRandom(0, length - 1)] : undefined;
+    }
+    var index = -1,
+        result = toArray(collection),
+        length = result.length,
+        lastIndex = length - 1;
+
+    n = nativeMin(n < 0 ? 0 : (+n || 0), length);
+    while (++index < n) {
+      var rand = baseRandom(index, lastIndex),
+          value = result[rand];
+
+      result[rand] = result[index];
+      result[index] = value;
+    }
+    result.length = n;
+    return result;
+  }
+
+  /**
+   * Creates an array of shuffled values, using a version of the
+   * [Fisher-Yates shuffle](https://en.wikipedia.org/wiki/Fisher-Yates_shuffle).
+   *
+   * @static
+   * @memberOf _
+   * @category Collection
+   * @param {Array|Object|string} collection The collection to shuffle.
+   * @returns {Array} Returns the new shuffled array.
+   * @example
+   *
+   * _.shuffle([1, 2, 3, 4]);
+   * // => [4, 1, 3, 2]
+   */
+  function shuffle(collection) {
+    return sample(collection, POSITIVE_INFINITY);
+  }
+
+  /**
    * Gets the size of `collection` by returning its length for array-like
    * values or the number of own enumerable properties for objects.
    *
@@ -5110,30 +5088,6 @@
   }
 
   /**
-   * Checks if `value` is greater than `other`.
-   *
-   * @static
-   * @memberOf _
-   * @category Lang
-   * @param {*} value The value to compare.
-   * @param {*} other The other value to compare.
-   * @returns {boolean} Returns `true` if `value` is greater than `other`, else `false`.
-   * @example
-   *
-   * _.gt(3, 1);
-   * // => true
-   *
-   * _.gt(3, 3);
-   * // => false
-   *
-   * _.gt(1, 3);
-   * // => false
-   */
-  function gt(value, other) {
-    return value > other;
-  }
-
-  /**
    * Checks if `value` is classified as an `arguments` object.
    *
    * @static
@@ -5457,27 +5411,31 @@
   }
 
   /**
-   * Checks if `value` is less than `other`.
+   * Converts `value` to an array.
    *
    * @static
    * @memberOf _
    * @category Lang
-   * @param {*} value The value to compare.
-   * @param {*} other The other value to compare.
-   * @returns {boolean} Returns `true` if `value` is less than `other`, else `false`.
+   * @param {*} value The value to convert.
+   * @returns {Array} Returns the converted array.
    * @example
    *
-   * _.lt(1, 3);
-   * // => true
-   *
-   * _.lt(3, 3);
-   * // => false
-   *
-   * _.lt(3, 1);
-   * // => false
+   * (function() {
+   *   return _.toArray(arguments).slice(1);
+   * }(1, 2, 3));
+   * // => [2, 3]
    */
-  function lt(value, other) {
-    return value < other;
+  function toArray(value) {
+    var length = value ? getLength(value) : 0;
+    if (!isLength(length)) {
+      return values(value);
+    }
+    if (!length) {
+      return [];
+    }
+    return (lodash.support.unindexedChars && isString(value))
+      ? value.split('')
+      : arrayCopy(value);
   }
 
   /**
@@ -6645,106 +6603,6 @@
 
   /*------------------------------------------------------------------------*/
 
-  /**
-   * Gets the maximum value of `collection`. If `collection` is empty or falsey
-   * `-Infinity` is returned. If an iteratee function is provided it's invoked
-   * for each value in `collection` to generate the criterion by which the value
-   * is ranked. The `iteratee` is bound to `thisArg` and invoked with three
-   * arguments: (value, index, collection).
-   *
-   * If a property name is provided for `iteratee` the created `_.property`
-   * style callback returns the property value of the given element.
-   *
-   * If a value is also provided for `thisArg` the created `_.matchesProperty`
-   * style callback returns `true` for elements that have a matching property
-   * value, else `false`.
-   *
-   * If an object is provided for `iteratee` the created `_.matches` style
-   * callback returns `true` for elements that have the properties of the given
-   * object, else `false`.
-   *
-   * @static
-   * @memberOf _
-   * @category Math
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function|Object|string} [iteratee] The function invoked per iteration.
-   * @param {*} [thisArg] The `this` binding of `iteratee`.
-   * @returns {*} Returns the maximum value.
-   * @example
-   *
-   * _.max([4, 2, 8, 6]);
-   * // => 8
-   *
-   * _.max([]);
-   * // => -Infinity
-   *
-   * var users = [
-   *   { 'user': 'barney', 'age': 36 },
-   *   { 'user': 'fred',   'age': 40 }
-   * ];
-   *
-   * _.max(users, function(chr) {
-   *   return chr.age;
-   * });
-   * // => { 'user': 'fred', 'age': 40 }
-   *
-   * // using the `_.property` callback shorthand
-   * _.max(users, 'age');
-   * // => { 'user': 'fred', 'age': 40 }
-   */
-  var max = createExtremum(gt, NEGATIVE_INFINITY);
-
-  /**
-   * Gets the minimum value of `collection`. If `collection` is empty or falsey
-   * `Infinity` is returned. If an iteratee function is provided it's invoked
-   * for each value in `collection` to generate the criterion by which the value
-   * is ranked. The `iteratee` is bound to `thisArg` and invoked with three
-   * arguments: (value, index, collection).
-   *
-   * If a property name is provided for `iteratee` the created `_.property`
-   * style callback returns the property value of the given element.
-   *
-   * If a value is also provided for `thisArg` the created `_.matchesProperty`
-   * style callback returns `true` for elements that have a matching property
-   * value, else `false`.
-   *
-   * If an object is provided for `iteratee` the created `_.matches` style
-   * callback returns `true` for elements that have the properties of the given
-   * object, else `false`.
-   *
-   * @static
-   * @memberOf _
-   * @category Math
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function|Object|string} [iteratee] The function invoked per iteration.
-   * @param {*} [thisArg] The `this` binding of `iteratee`.
-   * @returns {*} Returns the minimum value.
-   * @example
-   *
-   * _.min([4, 2, 8, 6]);
-   * // => 2
-   *
-   * _.min([]);
-   * // => Infinity
-   *
-   * var users = [
-   *   { 'user': 'barney', 'age': 36 },
-   *   { 'user': 'fred',   'age': 40 }
-   * ];
-   *
-   * _.min(users, function(chr) {
-   *   return chr.age;
-   * });
-   * // => { 'user': 'barney', 'age': 36 }
-   *
-   * // using the `_.property` callback shorthand
-   * _.min(users, 'age');
-   * // => { 'user': 'barney', 'age': 36 }
-   */
-  var min = createExtremum(lt, POSITIVE_INFINITY);
-
-  /*------------------------------------------------------------------------*/
-
   // Ensure wrappers are instances of `baseLodash`.
   lodash.prototype = baseLodash.prototype;
 
@@ -6786,9 +6644,11 @@
   lodash.reject = reject;
   lodash.remove = remove;
   lodash.restParam = restParam;
+  lodash.shuffle = shuffle;
   lodash.sortBy = sortBy;
   lodash.tap = tap;
   lodash.thru = thru;
+  lodash.toArray = toArray;
   lodash.toPlainObject = toPlainObject;
   lodash.transform = transform;
   lodash.uniq = uniq;
@@ -6819,7 +6679,6 @@
   lodash.find = find;
   lodash.first = first;
   lodash.get = get;
-  lodash.gt = gt;
   lodash.identity = identity;
   lodash.indexOf = indexOf;
   lodash.isArguments = isArguments;
@@ -6835,9 +6694,6 @@
   lodash.isTypedArray = isTypedArray;
   lodash.kebabCase = kebabCase;
   lodash.last = last;
-  lodash.lt = lt;
-  lodash.max = max;
-  lodash.min = min;
   lodash.noop = noop;
   lodash.now = now;
   lodash.padLeft = padLeft;
@@ -6869,6 +6725,9 @@
   }()), false);
 
   /*------------------------------------------------------------------------*/
+
+  // Add functions capable of returning wrapped and unwrapped values when chaining.
+  lodash.sample = sample;
 
   lodash.prototype.sample = function(n) {
     if (!this.__chain__ && n == null) {

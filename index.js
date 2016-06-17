@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -2648,6 +2648,20 @@
         return index > -1 ? collection[index] : undefined;
       }
       return baseFind(collection, predicate, eachFunc);
+    };
+  }
+
+  /**
+   * Creates a `_.findKey` or `_.findLastKey` function.
+   *
+   * @private
+   * @param {Function} objectFunc The function to iterate over an object.
+   * @returns {Function} Returns the new find function.
+   */
+  function createFindKey(objectFunc) {
+    return function(object, predicate, thisArg) {
+      predicate = getCallback(predicate, thisArg, 3);
+      return baseFind(object, predicate, objectFunc, true);
     };
   }
 
@@ -5626,6 +5640,56 @@
   var defaults = createDefaults(assign, assignDefaults);
 
   /**
+   * This method is like `_.find` except that it returns the key of the first
+   * element `predicate` returns truthy for instead of the element itself.
+   *
+   * If a property name is provided for `predicate` the created `_.property`
+   * style callback returns the property value of the given element.
+   *
+   * If a value is also provided for `thisArg` the created `_.matchesProperty`
+   * style callback returns `true` for elements that have a matching property
+   * value, else `false`.
+   *
+   * If an object is provided for `predicate` the created `_.matches` style
+   * callback returns `true` for elements that have the properties of the given
+   * object, else `false`.
+   *
+   * @static
+   * @memberOf _
+   * @category Object
+   * @param {Object} object The object to search.
+   * @param {Function|Object|string} [predicate=_.identity] The function invoked
+   *  per iteration.
+   * @param {*} [thisArg] The `this` binding of `predicate`.
+   * @returns {string|undefined} Returns the key of the matched element, else `undefined`.
+   * @example
+   *
+   * var users = {
+   *   'barney':  { 'age': 36, 'active': true },
+   *   'fred':    { 'age': 40, 'active': false },
+   *   'pebbles': { 'age': 1,  'active': true }
+   * };
+   *
+   * _.findKey(users, function(chr) {
+   *   return chr.age < 40;
+   * });
+   * // => 'barney' (iteration order is not guaranteed)
+   *
+   * // using the `_.matches` callback shorthand
+   * _.findKey(users, { 'age': 1, 'active': true });
+   * // => 'pebbles'
+   *
+   * // using the `_.matchesProperty` callback shorthand
+   * _.findKey(users, 'active', false);
+   * // => 'fred'
+   *
+   * // using the `_.property` callback shorthand
+   * _.findKey(users, 'active');
+   * // => 'barney'
+   */
+  var findKey = createFindKey(baseForOwn);
+
+  /**
    * Gets the property value at `path` of `object`. If the resolved value is
    * `undefined` the `defaultValue` is used in its place.
    *
@@ -6728,6 +6792,7 @@
   lodash.deburr = deburr;
   lodash.escape = escape;
   lodash.find = find;
+  lodash.findKey = findKey;
   lodash.first = first;
   lodash.get = get;
   lodash.identity = identity;

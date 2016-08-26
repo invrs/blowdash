@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,has,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5819,46 +5819,6 @@
   }
 
   /**
-   * Checks if `path` is a direct property.
-   *
-   * @static
-   * @memberOf _
-   * @category Object
-   * @param {Object} object The object to query.
-   * @param {Array|string} path The path to check.
-   * @returns {boolean} Returns `true` if `path` is a direct property, else `false`.
-   * @example
-   *
-   * var object = { 'a': { 'b': { 'c': 3 } } };
-   *
-   * _.has(object, 'a');
-   * // => true
-   *
-   * _.has(object, 'a.b.c');
-   * // => true
-   *
-   * _.has(object, ['a', 'b', 'c']);
-   * // => true
-   */
-  function has(object, path) {
-    if (object == null) {
-      return false;
-    }
-    var result = hasOwnProperty.call(object, path);
-    if (!result && !isKey(path)) {
-      path = toPath(path);
-      object = path.length == 1 ? object : baseGet(object, baseSlice(path, 0, -1));
-      if (object == null) {
-        return false;
-      }
-      path = last(path);
-      result = hasOwnProperty.call(object, path);
-    }
-    return result || (isLength(object.length) && isIndex(path, object.length) &&
-      (isArray(object) || isArguments(object) || isString(object)));
-  }
-
-  /**
    * Creates an array of the own enumerable property names of `object`.
    *
    * **Note:** Non-object values are coerced to objects. See the
@@ -6936,7 +6896,6 @@
   lodash.findKey = findKey;
   lodash.first = first;
   lodash.get = get;
-  lodash.has = has;
   lodash.identity = identity;
   lodash.indexOf = indexOf;
   lodash.isArguments = isArguments;

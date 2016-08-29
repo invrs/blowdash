@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1084,28 +1084,6 @@
   }
 
   /**
-   * A specialized version of `_.every` for arrays without support for callback
-   * shorthands and `this` binding.
-   *
-   * @private
-   * @param {Array} array The array to iterate over.
-   * @param {Function} predicate The function invoked per iteration.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`.
-   */
-  function arrayEvery(array, predicate) {
-    var index = -1,
-        length = array.length;
-
-    while (++index < length) {
-      if (!predicate(array[index], index, array)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * A specialized version of `_.filter` for arrays without support for callback
    * shorthands and `this` binding.
    *
@@ -1513,25 +1491,6 @@
    * @returns {Array|Object|string} Returns `collection`.
    */
   var baseEach = createBaseEach(baseForOwn);
-
-  /**
-   * The base implementation of `_.every` without support for callback
-   * shorthands and `this` binding.
-   *
-   * @private
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function} predicate The function invoked per iteration.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`
-   */
-  function baseEvery(collection, predicate) {
-    var result = true;
-    baseEach(collection, function(value, index, collection) {
-      result = !!predicate(value, index, collection);
-      return result;
-    });
-    return result;
-  }
 
   /**
    * The base implementation of `_.filter` without support for callback
@@ -4250,65 +4209,6 @@
   /*------------------------------------------------------------------------*/
 
   /**
-   * Checks if `predicate` returns truthy for **all** elements of `collection`.
-   * The predicate is bound to `thisArg` and invoked with three arguments:
-   * (value, index|key, collection).
-   *
-   * If a property name is provided for `predicate` the created `_.property`
-   * style callback returns the property value of the given element.
-   *
-   * If a value is also provided for `thisArg` the created `_.matchesProperty`
-   * style callback returns `true` for elements that have a matching property
-   * value, else `false`.
-   *
-   * If an object is provided for `predicate` the created `_.matches` style
-   * callback returns `true` for elements that have the properties of the given
-   * object, else `false`.
-   *
-   * @static
-   * @memberOf _
-   * @alias all
-   * @category Collection
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function|Object|string} [predicate=_.identity] The function invoked
-   *  per iteration.
-   * @param {*} [thisArg] The `this` binding of `predicate`.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`.
-   * @example
-   *
-   * _.every([true, 1, null, 'yes'], Boolean);
-   * // => false
-   *
-   * var users = [
-   *   { 'user': 'barney', 'active': false },
-   *   { 'user': 'fred',   'active': false }
-   * ];
-   *
-   * // using the `_.matches` callback shorthand
-   * _.every(users, { 'user': 'barney', 'active': false });
-   * // => false
-   *
-   * // using the `_.matchesProperty` callback shorthand
-   * _.every(users, 'active', false);
-   * // => true
-   *
-   * // using the `_.property` callback shorthand
-   * _.every(users, 'active');
-   * // => false
-   */
-  function every(collection, predicate, thisArg) {
-    var func = isArray(collection) ? arrayEvery : baseEvery;
-    if (thisArg && isIterateeCall(collection, predicate, thisArg)) {
-      predicate = undefined;
-    }
-    if (typeof predicate != 'function' || thisArg !== undefined) {
-      predicate = getCallback(predicate, thisArg, 3);
-    }
-    return func(collection, predicate);
-  }
-
-  /**
    * Iterates over elements of `collection`, returning an array of all elements
    * `predicate` returns truthy for. The predicate is bound to `thisArg` and
    * invoked with three arguments: (value, index|key, collection).
@@ -5431,6 +5331,37 @@
   }
 
   /**
+   * Checks if `value` is `NaN`.
+   *
+   * **Note:** This method is not the same as [`isNaN`](https://es5.github.io/#x15.1.2.4)
+   * which returns `true` for `undefined` and other non-numeric values.
+   *
+   * @static
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
+   * @example
+   *
+   * _.isNaN(NaN);
+   * // => true
+   *
+   * _.isNaN(new Number(NaN));
+   * // => true
+   *
+   * isNaN(undefined);
+   * // => true
+   *
+   * _.isNaN(undefined);
+   * // => false
+   */
+  function isNaN(value) {
+    // An `NaN` primitive is the only value that is not equal to itself.
+    // Perform the `toStringTag` check first to avoid errors with some host objects in IE.
+    return isNumber(value) && value != +value;
+  }
+
+  /**
    * Checks if `value` is a native function.
    *
    * @static
@@ -5454,6 +5385,32 @@
       return reIsNative.test(fnToString.call(value));
     }
     return isObjectLike(value) && (isHostObject(value) ? reIsNative : reIsHostCtor).test(value);
+  }
+
+  /**
+   * Checks if `value` is classified as a `Number` primitive or object.
+   *
+   * **Note:** To exclude `Infinity`, `-Infinity`, and `NaN`, which are classified
+   * as numbers, use the `_.isFinite` method.
+   *
+   * @static
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+   * @example
+   *
+   * _.isNumber(8.4);
+   * // => true
+   *
+   * _.isNumber(NaN);
+   * // => true
+   *
+   * _.isNumber('8.4');
+   * // => false
+   */
+  function isNumber(value) {
+    return typeof value == 'number' || (isObjectLike(value) && objToString.call(value) == numberTag);
   }
 
   /**
@@ -6891,7 +6848,6 @@
   lodash.cloneDeep = cloneDeep;
   lodash.deburr = deburr;
   lodash.escape = escape;
-  lodash.every = every;
   lodash.find = find;
   lodash.findKey = findKey;
   lodash.first = first;
@@ -6903,7 +6859,9 @@
   lodash.isEmpty = isEmpty;
   lodash.isEqual = isEqual;
   lodash.isFunction = isFunction;
+  lodash.isNaN = isNaN;
   lodash.isNative = isNative;
+  lodash.isNumber = isNumber;
   lodash.isObject = isObject;
   lodash.isPlainObject = isPlainObject;
   lodash.isRegExp = isRegExp;
@@ -6925,7 +6883,6 @@
   lodash.words = words;
 
   // Add aliases.
-  lodash.all = every;
   lodash.eq = isEqual;
   lodash.detect = find;
   lodash.foldl = reduce;

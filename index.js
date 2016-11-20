@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,delay,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1438,23 +1438,6 @@
       return result || {};
     };
   }());
-
-  /**
-   * The base implementation of `_.delay` and `_.defer` which accepts an index
-   * of where to slice the arguments to provide to `func`.
-   *
-   * @private
-   * @param {Function} func The function to delay.
-   * @param {number} wait The number of milliseconds to delay invocation.
-   * @param {Object} args The arguments provide to `func`.
-   * @returns {number} Returns the timer id.
-   */
-  function baseDelay(func, wait, args) {
-    if (typeof func != 'function') {
-      throw new TypeError(FUNC_ERROR_TEXT);
-    }
-    return setTimeout(function() { func.apply(undefined, args); }, wait);
-  }
 
   /**
    * The base implementation of `_.difference` which accepts a single array
@@ -5061,28 +5044,6 @@
   }
 
   /**
-   * Invokes `func` after `wait` milliseconds. Any additional arguments are
-   * provided to `func` when it's invoked.
-   *
-   * @static
-   * @memberOf _
-   * @category Function
-   * @param {Function} func The function to delay.
-   * @param {number} wait The number of milliseconds to delay invocation.
-   * @param {...*} [args] The arguments to invoke the function with.
-   * @returns {number} Returns the timer id.
-   * @example
-   *
-   * _.delay(function(text) {
-   *   console.log(text);
-   * }, 1000, 'later');
-   * // => logs 'later' after one second
-   */
-  var delay = restParam(function(func, wait, args) {
-    return baseDelay(func, wait, args);
-  });
-
-  /**
    * Creates a function that invokes `func` with the `this` binding of the
    * created function and arguments from `start` and beyond provided as an array.
    *
@@ -6281,6 +6242,30 @@
   /*------------------------------------------------------------------------*/
 
   /**
+   * Converts `string` to [camel case](https://en.wikipedia.org/wiki/CamelCase).
+   *
+   * @static
+   * @memberOf _
+   * @category String
+   * @param {string} [string=''] The string to convert.
+   * @returns {string} Returns the camel cased string.
+   * @example
+   *
+   * _.camelCase('Foo Bar');
+   * // => 'fooBar'
+   *
+   * _.camelCase('--foo-bar');
+   * // => 'fooBar'
+   *
+   * _.camelCase('__foo_bar__');
+   * // => 'fooBar'
+   */
+  var camelCase = createCompounder(function(result, word, index) {
+    word = word.toLowerCase();
+    return result + (index ? (word.charAt(0).toUpperCase() + word.slice(1)) : word);
+  });
+
+  /**
    * Capitalizes the first character of `string`.
    *
    * @static
@@ -6893,7 +6878,6 @@
   lodash.chunk = chunk;
   lodash.debounce = debounce;
   lodash.defaults = defaults;
-  lodash.delay = delay;
   lodash.drop = drop;
   lodash.filter = filter;
   lodash.flatten = flatten;
@@ -6943,6 +6927,7 @@
   /*------------------------------------------------------------------------*/
 
   // Add functions that return unwrapped values when chaining.
+  lodash.camelCase = camelCase;
   lodash.capitalize = capitalize;
   lodash.clone = clone;
   lodash.cloneDeep = cloneDeep;

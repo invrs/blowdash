@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,flattenDeep,forEach,get,groupBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3660,6 +3660,24 @@
   }
 
   /**
+   * Recursively flattens a nested array.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to recursively flatten.
+   * @returns {Array} Returns the new flattened array.
+   * @example
+   *
+   * _.flattenDeep([1, [2, 3, [4]]]);
+   * // => [1, 2, 3, 4]
+   */
+  function flattenDeep(array) {
+    var length = array ? array.length : 0;
+    return length ? baseFlatten(array, true) : [];
+  }
+
+  /**
    * Gets the index at which the first occurrence of `value` is found in `array`
    * using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons. If `fromIndex` is negative, it's used as the offset
@@ -4481,56 +4499,6 @@
   });
 
   /**
-   * Creates an object composed of keys generated from the results of running
-   * each element of `collection` through `iteratee`. The corresponding value
-   * of each key is the last element responsible for generating the key. The
-   * iteratee function is bound to `thisArg` and invoked with three arguments:
-   * (value, index|key, collection).
-   *
-   * If a property name is provided for `iteratee` the created `_.property`
-   * style callback returns the property value of the given element.
-   *
-   * If a value is also provided for `thisArg` the created `_.matchesProperty`
-   * style callback returns `true` for elements that have a matching property
-   * value, else `false`.
-   *
-   * If an object is provided for `iteratee` the created `_.matches` style
-   * callback returns `true` for elements that have the properties of the given
-   * object, else `false`.
-   *
-   * @static
-   * @memberOf _
-   * @category Collection
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function|Object|string} [iteratee=_.identity] The function invoked
-   *  per iteration.
-   * @param {*} [thisArg] The `this` binding of `iteratee`.
-   * @returns {Object} Returns the composed aggregate object.
-   * @example
-   *
-   * var keyData = [
-   *   { 'dir': 'left', 'code': 97 },
-   *   { 'dir': 'right', 'code': 100 }
-   * ];
-   *
-   * _.indexBy(keyData, 'dir');
-   * // => { 'left': { 'dir': 'left', 'code': 97 }, 'right': { 'dir': 'right', 'code': 100 } }
-   *
-   * _.indexBy(keyData, function(object) {
-   *   return String.fromCharCode(object.code);
-   * });
-   * // => { 'a': { 'dir': 'left', 'code': 97 }, 'd': { 'dir': 'right', 'code': 100 } }
-   *
-   * _.indexBy(keyData, function(object) {
-   *   return this.fromCharCode(object.code);
-   * }, String);
-   * // => { 'a': { 'dir': 'left', 'code': 97 }, 'd': { 'dir': 'right', 'code': 100 } }
-   */
-  var indexBy = createAggregator(function(result, value, key) {
-    result[key] = value;
-  });
-
-  /**
    * Creates an array of values by running each element in `collection` through
    * `iteratee`. The `iteratee` is bound to `thisArg` and invoked with three
    * arguments: (value, index|key, collection).
@@ -5095,71 +5063,6 @@
   }
 
   /*------------------------------------------------------------------------*/
-
-  /**
-   * Creates a clone of `value`. If `isDeep` is `true` nested objects are cloned,
-   * otherwise they are assigned by reference. If `customizer` is provided it's
-   * invoked to produce the cloned values. If `customizer` returns `undefined`
-   * cloning is handled by the method instead. The `customizer` is bound to
-   * `thisArg` and invoked with up to three argument; (value [, index|key, object]).
-   *
-   * **Note:** This method is loosely based on the
-   * [structured clone algorithm](http://www.w3.org/TR/html5/infrastructure.html#internal-structured-cloning-algorithm).
-   * The enumerable properties of `arguments` objects and objects created by
-   * constructors other than `Object` are cloned to plain `Object` objects. An
-   * empty object is returned for uncloneable values such as functions, DOM nodes,
-   * Maps, Sets, and WeakMaps.
-   *
-   * @static
-   * @memberOf _
-   * @category Lang
-   * @param {*} value The value to clone.
-   * @param {boolean} [isDeep] Specify a deep clone.
-   * @param {Function} [customizer] The function to customize cloning values.
-   * @param {*} [thisArg] The `this` binding of `customizer`.
-   * @returns {*} Returns the cloned value.
-   * @example
-   *
-   * var users = [
-   *   { 'user': 'barney' },
-   *   { 'user': 'fred' }
-   * ];
-   *
-   * var shallow = _.clone(users);
-   * shallow[0] === users[0];
-   * // => true
-   *
-   * var deep = _.clone(users, true);
-   * deep[0] === users[0];
-   * // => false
-   *
-   * // using a customizer callback
-   * var el = _.clone(document.body, function(value) {
-   *   if (_.isElement(value)) {
-   *     return value.cloneNode(false);
-   *   }
-   * });
-   *
-   * el === document.body
-   * // => false
-   * el.nodeName
-   * // => BODY
-   * el.childNodes.length;
-   * // => 0
-   */
-  function clone(value, isDeep, customizer, thisArg) {
-    if (isDeep && typeof isDeep != 'boolean' && isIterateeCall(value, isDeep, customizer)) {
-      isDeep = false;
-    }
-    else if (typeof isDeep == 'function') {
-      thisArg = customizer;
-      customizer = isDeep;
-      isDeep = false;
-    }
-    return typeof customizer == 'function'
-      ? baseClone(value, isDeep, bindCallback(customizer, thisArg, 3))
-      : baseClone(value, isDeep);
-  }
 
   /**
    * Creates a deep clone of `value`. If `customizer` is provided it's invoked
@@ -6881,9 +6784,9 @@
   lodash.drop = drop;
   lodash.filter = filter;
   lodash.flatten = flatten;
+  lodash.flattenDeep = flattenDeep;
   lodash.forEach = forEach;
   lodash.groupBy = groupBy;
-  lodash.indexBy = indexBy;
   lodash.keys = keys;
   lodash.keysIn = keysIn;
   lodash.map = map;
@@ -6929,7 +6832,6 @@
   // Add functions that return unwrapped values when chaining.
   lodash.camelCase = camelCase;
   lodash.capitalize = capitalize;
-  lodash.clone = clone;
   lodash.cloneDeep = cloneDeep;
   lodash.deburr = deburr;
   lodash.escape = escape;

@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,flattenDeep,forEach,get,groupBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3660,24 +3660,6 @@
   }
 
   /**
-   * Recursively flattens a nested array.
-   *
-   * @static
-   * @memberOf _
-   * @category Array
-   * @param {Array} array The array to recursively flatten.
-   * @returns {Array} Returns the new flattened array.
-   * @example
-   *
-   * _.flattenDeep([1, [2, 3, [4]]]);
-   * // => [1, 2, 3, 4]
-   */
-  function flattenDeep(array) {
-    var length = array ? array.length : 0;
-    return length ? baseFlatten(array, true) : [];
-  }
-
-  /**
    * Gets the index at which the first occurrence of `value` is found in `array`
    * using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
    * for equality comparisons. If `fromIndex` is negative, it's used as the offset
@@ -6784,7 +6766,6 @@
   lodash.drop = drop;
   lodash.filter = filter;
   lodash.flatten = flatten;
-  lodash.flattenDeep = flattenDeep;
   lodash.forEach = forEach;
   lodash.groupBy = groupBy;
   lodash.keys = keys;

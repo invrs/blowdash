@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,camelCase,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,every,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexOf,intersection,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -1084,28 +1084,6 @@
   }
 
   /**
-   * A specialized version of `_.every` for arrays without support for callback
-   * shorthands and `this` binding.
-   *
-   * @private
-   * @param {Array} array The array to iterate over.
-   * @param {Function} predicate The function invoked per iteration.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`.
-   */
-  function arrayEvery(array, predicate) {
-    var index = -1,
-        length = array.length;
-
-    while (++index < length) {
-      if (!predicate(array[index], index, array)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * A specialized version of `_.filter` for arrays without support for callback
    * shorthands and `this` binding.
    *
@@ -1496,25 +1474,6 @@
    * @returns {Array|Object|string} Returns `collection`.
    */
   var baseEach = createBaseEach(baseForOwn);
-
-  /**
-   * The base implementation of `_.every` without support for callback
-   * shorthands and `this` binding.
-   *
-   * @private
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function} predicate The function invoked per iteration.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`
-   */
-  function baseEvery(collection, predicate) {
-    var result = true;
-    baseEach(collection, function(value, index, collection) {
-      result = !!predicate(value, index, collection);
-      return result;
-    });
-    return result;
-  }
 
   /**
    * The base implementation of `_.filter` without support for callback
@@ -3706,6 +3665,57 @@
   }
 
   /**
+   * Creates an array of unique values that are included in all of the provided
+   * arrays using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
+   * for equality comparisons.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {...Array} [arrays] The arrays to inspect.
+   * @returns {Array} Returns the new array of shared values.
+   * @example
+   * _.intersection([1, 2], [4, 2], [2, 1]);
+   * // => [2]
+   */
+  var intersection = restParam(function(arrays) {
+    var othLength = arrays.length,
+        othIndex = othLength,
+        caches = Array(length),
+        indexOf = getIndexOf(),
+        isCommon = indexOf === baseIndexOf,
+        result = [];
+
+    while (othIndex--) {
+      var value = arrays[othIndex] = isArrayLike(value = arrays[othIndex]) ? value : [];
+      caches[othIndex] = (isCommon && value.length >= 120) ? createCache(othIndex && value) : null;
+    }
+    var array = arrays[0],
+        index = -1,
+        length = array ? array.length : 0,
+        seen = caches[0];
+
+    outer:
+    while (++index < length) {
+      value = array[index];
+      if ((seen ? cacheIndexOf(seen, value) : indexOf(result, value, 0)) < 0) {
+        var othIndex = othLength;
+        while (--othIndex) {
+          var cache = caches[othIndex];
+          if ((cache ? cacheIndexOf(cache, value) : indexOf(arrays[othIndex], value, 0)) < 0) {
+            continue outer;
+          }
+        }
+        if (seen) {
+          seen.push(value);
+        }
+        result.push(value);
+      }
+    }
+    return result;
+  });
+
+  /**
    * Gets the last element of `array`.
    *
    * @static
@@ -4231,65 +4241,6 @@
   }
 
   /*------------------------------------------------------------------------*/
-
-  /**
-   * Checks if `predicate` returns truthy for **all** elements of `collection`.
-   * The predicate is bound to `thisArg` and invoked with three arguments:
-   * (value, index|key, collection).
-   *
-   * If a property name is provided for `predicate` the created `_.property`
-   * style callback returns the property value of the given element.
-   *
-   * If a value is also provided for `thisArg` the created `_.matchesProperty`
-   * style callback returns `true` for elements that have a matching property
-   * value, else `false`.
-   *
-   * If an object is provided for `predicate` the created `_.matches` style
-   * callback returns `true` for elements that have the properties of the given
-   * object, else `false`.
-   *
-   * @static
-   * @memberOf _
-   * @alias all
-   * @category Collection
-   * @param {Array|Object|string} collection The collection to iterate over.
-   * @param {Function|Object|string} [predicate=_.identity] The function invoked
-   *  per iteration.
-   * @param {*} [thisArg] The `this` binding of `predicate`.
-   * @returns {boolean} Returns `true` if all elements pass the predicate check,
-   *  else `false`.
-   * @example
-   *
-   * _.every([true, 1, null, 'yes'], Boolean);
-   * // => false
-   *
-   * var users = [
-   *   { 'user': 'barney', 'active': false },
-   *   { 'user': 'fred',   'active': false }
-   * ];
-   *
-   * // using the `_.matches` callback shorthand
-   * _.every(users, { 'user': 'barney', 'active': false });
-   * // => false
-   *
-   * // using the `_.matchesProperty` callback shorthand
-   * _.every(users, 'active', false);
-   * // => true
-   *
-   * // using the `_.property` callback shorthand
-   * _.every(users, 'active');
-   * // => false
-   */
-  function every(collection, predicate, thisArg) {
-    var func = isArray(collection) ? arrayEvery : baseEvery;
-    if (thisArg && isIterateeCall(collection, predicate, thisArg)) {
-      predicate = undefined;
-    }
-    if (typeof predicate != 'function' || thisArg !== undefined) {
-      predicate = getCallback(predicate, thisArg, 3);
-    }
-    return func(collection, predicate);
-  }
 
   /**
    * Iterates over elements of `collection`, returning an array of all elements
@@ -6127,30 +6078,6 @@
   /*------------------------------------------------------------------------*/
 
   /**
-   * Converts `string` to [camel case](https://en.wikipedia.org/wiki/CamelCase).
-   *
-   * @static
-   * @memberOf _
-   * @category String
-   * @param {string} [string=''] The string to convert.
-   * @returns {string} Returns the camel cased string.
-   * @example
-   *
-   * _.camelCase('Foo Bar');
-   * // => 'fooBar'
-   *
-   * _.camelCase('--foo-bar');
-   * // => 'fooBar'
-   *
-   * _.camelCase('__foo_bar__');
-   * // => 'fooBar'
-   */
-  var camelCase = createCompounder(function(result, word, index) {
-    word = word.toLowerCase();
-    return result + (index ? (word.charAt(0).toUpperCase() + word.slice(1)) : word);
-  });
-
-  /**
    * Capitalizes the first character of `string`.
    *
    * @static
@@ -6768,6 +6695,7 @@
   lodash.flatten = flatten;
   lodash.forEach = forEach;
   lodash.groupBy = groupBy;
+  lodash.intersection = intersection;
   lodash.keys = keys;
   lodash.keysIn = keysIn;
   lodash.map = map;
@@ -6811,12 +6739,10 @@
   /*------------------------------------------------------------------------*/
 
   // Add functions that return unwrapped values when chaining.
-  lodash.camelCase = camelCase;
   lodash.capitalize = capitalize;
   lodash.cloneDeep = cloneDeep;
   lodash.deburr = deburr;
   lodash.escape = escape;
-  lodash.every = every;
   lodash.find = find;
   lodash.findKey = findKey;
   lodash.first = first;
@@ -6852,7 +6778,6 @@
   lodash.words = words;
 
   // Add aliases.
-  lodash.all = every;
   lodash.eq = isEqual;
   lodash.detect = find;
   lodash.foldl = reduce;

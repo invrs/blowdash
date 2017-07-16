@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.10.1 (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexOf,intersection,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,clone,cloneDeep,debounce,defaults,drop,each,escape,extend,filter,find,findKey,first,flatten,forEach,get,groupBy,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,last,map,mapValues,merge,noop,omit,padLeft,pick,pluck,pullAt,random,reduce,reject,remove,shuffle,size,sortBy,startCase,toArray,transform,trim,trunc,unescape,uniq,values,without,words,zipObject" -d -o index.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3665,57 +3665,6 @@
   }
 
   /**
-   * Creates an array of unique values that are included in all of the provided
-   * arrays using [`SameValueZero`](http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
-   * for equality comparisons.
-   *
-   * @static
-   * @memberOf _
-   * @category Array
-   * @param {...Array} [arrays] The arrays to inspect.
-   * @returns {Array} Returns the new array of shared values.
-   * @example
-   * _.intersection([1, 2], [4, 2], [2, 1]);
-   * // => [2]
-   */
-  var intersection = restParam(function(arrays) {
-    var othLength = arrays.length,
-        othIndex = othLength,
-        caches = Array(length),
-        indexOf = getIndexOf(),
-        isCommon = indexOf === baseIndexOf,
-        result = [];
-
-    while (othIndex--) {
-      var value = arrays[othIndex] = isArrayLike(value = arrays[othIndex]) ? value : [];
-      caches[othIndex] = (isCommon && value.length >= 120) ? createCache(othIndex && value) : null;
-    }
-    var array = arrays[0],
-        index = -1,
-        length = array ? array.length : 0,
-        seen = caches[0];
-
-    outer:
-    while (++index < length) {
-      value = array[index];
-      if ((seen ? cacheIndexOf(seen, value) : indexOf(result, value, 0)) < 0) {
-        var othIndex = othLength;
-        while (--othIndex) {
-          var cache = caches[othIndex];
-          if ((cache ? cacheIndexOf(cache, value) : indexOf(arrays[othIndex], value, 0)) < 0) {
-            continue outer;
-          }
-        }
-        if (seen) {
-          seen.push(value);
-        }
-        result.push(value);
-      }
-    }
-    return result;
-  });
-
-  /**
    * Gets the last element of `array`.
    *
    * @static
@@ -4996,6 +4945,71 @@
   }
 
   /*------------------------------------------------------------------------*/
+
+  /**
+   * Creates a clone of `value`. If `isDeep` is `true` nested objects are cloned,
+   * otherwise they are assigned by reference. If `customizer` is provided it's
+   * invoked to produce the cloned values. If `customizer` returns `undefined`
+   * cloning is handled by the method instead. The `customizer` is bound to
+   * `thisArg` and invoked with up to three argument; (value [, index|key, object]).
+   *
+   * **Note:** This method is loosely based on the
+   * [structured clone algorithm](http://www.w3.org/TR/html5/infrastructure.html#internal-structured-cloning-algorithm).
+   * The enumerable properties of `arguments` objects and objects created by
+   * constructors other than `Object` are cloned to plain `Object` objects. An
+   * empty object is returned for uncloneable values such as functions, DOM nodes,
+   * Maps, Sets, and WeakMaps.
+   *
+   * @static
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to clone.
+   * @param {boolean} [isDeep] Specify a deep clone.
+   * @param {Function} [customizer] The function to customize cloning values.
+   * @param {*} [thisArg] The `this` binding of `customizer`.
+   * @returns {*} Returns the cloned value.
+   * @example
+   *
+   * var users = [
+   *   { 'user': 'barney' },
+   *   { 'user': 'fred' }
+   * ];
+   *
+   * var shallow = _.clone(users);
+   * shallow[0] === users[0];
+   * // => true
+   *
+   * var deep = _.clone(users, true);
+   * deep[0] === users[0];
+   * // => false
+   *
+   * // using a customizer callback
+   * var el = _.clone(document.body, function(value) {
+   *   if (_.isElement(value)) {
+   *     return value.cloneNode(false);
+   *   }
+   * });
+   *
+   * el === document.body
+   * // => false
+   * el.nodeName
+   * // => BODY
+   * el.childNodes.length;
+   * // => 0
+   */
+  function clone(value, isDeep, customizer, thisArg) {
+    if (isDeep && typeof isDeep != 'boolean' && isIterateeCall(value, isDeep, customizer)) {
+      isDeep = false;
+    }
+    else if (typeof isDeep == 'function') {
+      thisArg = customizer;
+      customizer = isDeep;
+      isDeep = false;
+    }
+    return typeof customizer == 'function'
+      ? baseClone(value, isDeep, bindCallback(customizer, thisArg, 3))
+      : baseClone(value, isDeep);
+  }
 
   /**
    * Creates a deep clone of `value`. If `customizer` is provided it's invoked
@@ -6695,7 +6709,6 @@
   lodash.flatten = flatten;
   lodash.forEach = forEach;
   lodash.groupBy = groupBy;
-  lodash.intersection = intersection;
   lodash.keys = keys;
   lodash.keysIn = keysIn;
   lodash.map = map;
@@ -6740,6 +6753,7 @@
 
   // Add functions that return unwrapped values when chaining.
   lodash.capitalize = capitalize;
+  lodash.clone = clone;
   lodash.cloneDeep = cloneDeep;
   lodash.deburr = deburr;
   lodash.escape = escape;

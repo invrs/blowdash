@@ -1,7 +1,7 @@
 /**
  * @license
  * Lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,filter,find,findKey,flatten,forEach,get,groupBy,head,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,omitBy,padStart,pick,pickBy,pullAt,random,reduce,reject,remove,size,snakeCase,sortBy,startCase,toArray,transform,trim,truncate,unescape,uniq,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,filter,find,findKey,flatten,forEach,get,groupBy,head,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,omitBy,padStart,pick,pickBy,pullAt,random,reduce,reject,remove,size,snakeCase,sortBy,startCase,toArray,transform,trim,truncate,unescape,uniq,uniqBy,values,without,words,zipObject" -d -o index.js`
  * Copyright JS Foundation and other contributors <https://js.foundation/>
  * Released under MIT license <https://lodash.com/license>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
@@ -5501,6 +5501,33 @@
   }
 
   /**
+   * This method is like `_.uniq` except that it accepts `iteratee` which is
+   * invoked for each element in `array` to generate the criterion by which
+   * uniqueness is computed. The order of result values is determined by the
+   * order they occur in the array. The iteratee is invoked with one argument:
+   * (value).
+   *
+   * @static
+   * @memberOf _
+   * @since 4.0.0
+   * @category Array
+   * @param {Array} array The array to inspect.
+   * @param {Function} [iteratee=_.identity] The iteratee invoked per element.
+   * @returns {Array} Returns the new duplicate free array.
+   * @example
+   *
+   * _.uniqBy([2.1, 1.2, 2.3], Math.floor);
+   * // => [2.1, 1.2]
+   *
+   * // The `_.property` iteratee shorthand.
+   * _.uniqBy([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
+   * // => [{ 'x': 1 }, { 'x': 2 }]
+   */
+  function uniqBy(array, iteratee) {
+    return (array && array.length) ? baseUniq(array, getIteratee(iteratee, 2)) : [];
+  }
+
+  /**
    * Creates an array excluding all given values using
    * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
    * for equality comparisons.
@@ -8652,6 +8679,7 @@
   lodash.toPlainObject = toPlainObject;
   lodash.transform = transform;
   lodash.uniq = uniq;
+  lodash.uniqBy = uniqBy;
   lodash.values = values;
   lodash.without = without;
   lodash.words = words;

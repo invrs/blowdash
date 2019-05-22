@@ -1,7 +1,7 @@
 /**
  * @license
  * Lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,drop,each,escape,filter,find,findKey,flatten,forEach,get,groupBy,head,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,omitBy,padStart,pick,pickBy,pullAt,random,reduce,reject,remove,size,snakeCase,sortBy,startCase,throttle,toArray,transform,trim,truncate,unescape,uniq,uniqBy,values,without,words,zipObject" -d -o index.js`
+ * Build: `lodash include="assign,capitalize,chain,chunk,cloneDeep,debounce,defaults,difference,drop,each,escape,filter,find,findKey,flatten,forEach,get,groupBy,head,indexOf,isArray,isEmpty,isEqual,isFunction,isNaN,isObject,isString,kebabCase,keys,map,mapValues,merge,noop,omit,omitBy,padStart,pick,pickBy,pullAt,random,reduce,reject,remove,size,snakeCase,sortBy,startCase,throttle,toArray,transform,trim,truncate,unescape,uniq,uniqBy,values,without,words,zipObject" -d -o index.js`
  * Copyright JS Foundation and other contributors <https://js.foundation/>
  * Released under MIT license <https://lodash.com/license>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
@@ -5192,6 +5192,33 @@
   }
 
   /**
+   * Creates an array of `array` values not included in the other given arrays
+   * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+   * for equality comparisons. The order and references of result values are
+   * determined by the first array.
+   *
+   * **Note:** Unlike `_.pullAll`, this method returns a new array.
+   *
+   * @static
+   * @memberOf _
+   * @since 0.1.0
+   * @category Array
+   * @param {Array} array The array to inspect.
+   * @param {...Array} [values] The values to exclude.
+   * @returns {Array} Returns the new array of filtered values.
+   * @see _.without, _.xor
+   * @example
+   *
+   * _.difference([2, 1], [2, 3]);
+   * // => [1]
+   */
+  var difference = baseRest(function(array, values) {
+    return isArrayLikeObject(array)
+      ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject, true))
+      : [];
+  });
+
+  /**
    * Creates a slice of `array` with `n` elements dropped from the beginning.
    *
    * @static
@@ -8712,6 +8739,7 @@
   lodash.constant = constant;
   lodash.debounce = debounce;
   lodash.defaults = defaults;
+  lodash.difference = difference;
   lodash.drop = drop;
   lodash.filter = filter;
   lodash.flatten = flatten;
